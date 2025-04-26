@@ -1,8 +1,7 @@
-<!DOCTYPE html>
-<html lang="id">
+<!DOCTYPE html><html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin | LinkinAja</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
@@ -15,12 +14,10 @@
     table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
     th { background: #e8f5e9; }
-    .btn-edit, .btn-buy { background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; }
+    .btn-edit { background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
     .btn-delete { background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-    .btn-buy { background: #4CAF50; margin-bottom: 5px; display: inline-block; }
-  </style>
-
-  <script type="module">
+    #loading { display: none; text-align: center; color: #0fb310; }
+  </style>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
@@ -58,9 +55,9 @@
           <td>${p.toko}</td>
           <td>${p.kategori}</td>
           <td>Rp${p.harga.toLocaleString()}</td>
+          <td><a href="${p.link}" target="_blank">Beli</a></td>
           <td>
-            <a href="${p.linkPembelian}" target="_blank" class="btn-buy">Beli</a><br/>
-            <button class='btn-edit' onclick="editProduct('${docSnap.id}', '${p.nama}', '${p.toko}', '${p.kategori}', '${p.harga}', '${p.deskripsi}', '${p.gambar}', ${p.rating}, '${p.linkPembelian}')">Edit</button> 
+            <button class='btn-edit' onclick="editProduct('${docSnap.id}', '${p.nama}', '${p.toko}', '${p.kategori}', '${p.harga}', '${p.deskripsi}', '${p.gambar}', ${p.rating}, '${p.link}')">Edit</button> 
             <button class='btn-delete' onclick="deleteProduct('${docSnap.id}')">Hapus</button>
           </td>
         `;
@@ -68,7 +65,7 @@
       });
     }
 
-    window.editProduct = (id, nama, toko, kategori, harga, deskripsi, gambar, rating, linkPembelian) => {
+    window.editProduct = (id, nama, toko, kategori, harga, deskripsi, gambar, rating, link) => {
       document.getElementById('nama').value = nama;
       document.getElementById('toko').value = toko;
       document.getElementById('kategori').value = kategori;
@@ -76,36 +73,44 @@
       document.getElementById('deskripsi').value = deskripsi;
       document.getElementById('gambar').value = gambar;
       document.getElementById('rating').value = rating;
-      document.getElementById('linkPembelian').value = linkPembelian;
+      document.getElementById('link').value = link;
       editMode = true;
       editId = id;
     }
 
     async function handleFormSubmit(e) {
       e.preventDefault();
-      const data = {
-        nama: nama.value,
-        toko: toko.value,
-        kategori: kategori.value,
-        harga: Number(harga.value),
-        deskripsi: deskripsi.value,
-        gambar: gambar.value,
-        rating: Number(rating.value),
-        linkPembelian: linkPembelian.value
-      };
-      if(editMode) {
-        if(confirm('Yakin update produk ini?')) {
-          await updateDoc(doc(db, "produk", editId), data);
-          alert('Produk berhasil diupdate!');
+      document.getElementById('loading').style.display = 'block';
+      try {
+        const data = {
+          nama: nama.value,
+          toko: toko.value,
+          kategori: kategori.value,
+          harga: Number(harga.value),
+          deskripsi: deskripsi.value,
+          gambar: gambar.value,
+          rating: Number(rating.value),
+          link: link.value
+        };
+        if(editMode) {
+          if(confirm('Yakin update produk ini?')) {
+            await updateDoc(doc(db, "produk", editId), data);
+            alert('Produk berhasil diupdate!');
+          }
+        } else {
+          await addDoc(produkRef, data);
+          alert('Produk berhasil ditambahkan!');
         }
-      } else {
-        await addDoc(produkRef, data);
-        alert('Produk berhasil ditambahkan!');
+        document.getElementById('productForm').reset();
+        editMode = false;
+        editId = null;
+        loadProducts();
+      } catch (error) {
+        alert('Gagal menyimpan produk: ' + error.message);
+        console.error(error);
+      } finally {
+        document.getElementById('loading').style.display = 'none';
       }
-      document.getElementById('productForm').reset();
-      editMode = false;
-      editId = null;
-      loadProducts();
     }
 
     window.deleteProduct = async (id) => {
@@ -115,8 +120,7 @@
         loadProducts();
       }
     }
-  </script>
-</head>
+  </script></head>
 <body>
   <header>
     <h1>Admin Panel - LinkinAja</h1>
@@ -151,23 +155,24 @@
       <textarea id="deskripsi" placeholder="Deskripsi" required></textarea>
       <input type="text" id="gambar" placeholder="Link Gambar" required />
       <input type="number" id="rating" placeholder="Rating (1-5)" min="1" max="5" required />
-      <input type="text" id="linkPembelian" placeholder="Link Pembelian" required />
+      <input type="text" id="link" placeholder="Link Pembelian" required />
       <button type="submit">Simpan Produk</button>
-    </form>
+      <div id="loading">Loading...</div>
+    </form><h2>Daftar Produk</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Nama</th>
+      <th>Toko</th>
+      <th>Kategori</th>
+      <th>Harga</th>
+      <th>Link Beli</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody id="productList"></tbody>
+</table>
 
-    <h2>Daftar Produk</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Nama</th>
-          <th>Toko</th>
-          <th>Kategori</th>
-          <th>Harga</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="productList"></tbody>
-    </table>
   </div>
 </body>
 </html>
