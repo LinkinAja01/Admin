@@ -15,8 +15,9 @@
     table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
     th { background: #e8f5e9; }
-    .btn-edit { background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    .btn-edit, .btn-buy { background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; }
     .btn-delete { background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    .btn-buy { background: #4CAF50; margin-bottom: 5px; display: inline-block; }
   </style>
 
   <script type="module">
@@ -57,14 +58,17 @@
           <td>${p.toko}</td>
           <td>${p.kategori}</td>
           <td>Rp${p.harga.toLocaleString()}</td>
-          <td><button class='btn-edit' onclick="editProduct('${docSnap.id}', '${p.nama}', '${p.toko}', '${p.kategori}', '${p.harga}', '${p.deskripsi}', '${p.gambar}', ${p.rating})">Edit</button> 
-              <button class='btn-delete' onclick="deleteProduct('${docSnap.id}')">Hapus</button></td>
+          <td>
+            <a href="${p.linkPembelian}" target="_blank" class="btn-buy">Beli</a><br/>
+            <button class='btn-edit' onclick="editProduct('${docSnap.id}', '${p.nama}', '${p.toko}', '${p.kategori}', '${p.harga}', '${p.deskripsi}', '${p.gambar}', ${p.rating}, '${p.linkPembelian}')">Edit</button> 
+            <button class='btn-delete' onclick="deleteProduct('${docSnap.id}')">Hapus</button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    window.editProduct = (id, nama, toko, kategori, harga, deskripsi, gambar, rating) => {
+    window.editProduct = (id, nama, toko, kategori, harga, deskripsi, gambar, rating, linkPembelian) => {
       document.getElementById('nama').value = nama;
       document.getElementById('toko').value = toko;
       document.getElementById('kategori').value = kategori;
@@ -72,6 +76,7 @@
       document.getElementById('deskripsi').value = deskripsi;
       document.getElementById('gambar').value = gambar;
       document.getElementById('rating').value = rating;
+      document.getElementById('linkPembelian').value = linkPembelian;
       editMode = true;
       editId = id;
     }
@@ -85,7 +90,8 @@
         harga: Number(harga.value),
         deskripsi: deskripsi.value,
         gambar: gambar.value,
-        rating: Number(rating.value)
+        rating: Number(rating.value),
+        linkPembelian: linkPembelian.value
       };
       if(editMode) {
         if(confirm('Yakin update produk ini?')) {
@@ -145,6 +151,7 @@
       <textarea id="deskripsi" placeholder="Deskripsi" required></textarea>
       <input type="text" id="gambar" placeholder="Link Gambar" required />
       <input type="number" id="rating" placeholder="Rating (1-5)" min="1" max="5" required />
+      <input type="text" id="linkPembelian" placeholder="Link Pembelian" required />
       <button type="submit">Simpan Produk</button>
     </form>
 
